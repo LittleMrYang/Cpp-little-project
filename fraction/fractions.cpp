@@ -11,27 +11,28 @@ namespace fracs
     }
     class ZeroDivisionError : exception
     {
-        constexpr const char *what()
+        constexpr const char *what() noexcept
         {
             return "Zero Division Error";
         }
     };
+    template <typename value_T = int>
     class fraction
     {
     private:
-        unsigned fz, fm;
+        value_T fz, fm;
         bool nagative = 0;
 
     public:
-        fraction(int fz = 1, int fm = 1) : fz(abs(fz)), fm(abs(fm)), nagative((fz < 0) ^ (fm < 0))
+        fraction(long long fz = 1, long long fm = 1) : fz(abs<long long>(fz)), fm(abs<long long>(fm)), nagative((fz < 0) ^ (fm < 0))
         {
             normalize();
         }
         fraction(string s)
         {
             nagative = s.front() == '-';
-            fz = stoi(s.substr(nagative, s.find('/')));
-            fm = stoi(s.substr(s.find('/') + 1, s.size() - s.find('/') - 1));
+            fz = stoll(s.substr(nagative, s.find('/')));
+            fm = stoll(s.substr(s.find('/') + 1, s.size() - s.find('/') - 1));
             normalize();
         }
 
@@ -195,7 +196,6 @@ namespace fracs
 }
 
 using namespace fracs;
-
 int main()
 {
     return 0;
