@@ -1,11 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
-namespace fracs
+namespace maths_
 {
     constexpr int Ipow(int bs, int r)
     {
         int mt = 1;
-        while (r--)
+        while (r-- > 0)
             mt *= bs;
         return mt;
     }
@@ -16,11 +16,23 @@ namespace fracs
             return "Zero Division Error";
         }
     };
-    template <typename value_T = int>
+    class struction_error : exception
+    {
+    private:
+        string errType;
+
+    public:
+        struction_error() : errType("Bad struction") {}
+        struction_error(string errT) : errType(errT) {}
+        const char *what()
+        {
+            return errType.c_str();
+        }
+    };
     class fraction
     {
     private:
-        value_T fz, fm;
+        unsigned long long fz, fm;
         bool nagative = 0;
 
     public:
@@ -36,17 +48,6 @@ namespace fracs
             normalize();
         }
 
-        // void print()
-        // {
-        //     normalize();
-        //     if (nagative)
-        //         cout << "-";
-        //     if (fm == 1)
-        //         cout << fz;
-        //     else
-        //         cout << fz << "/" << fm;
-        // }
-
         friend ostream &operator<<(ostream &os, fraction slf)
         {
             slf.normalize();
@@ -58,6 +59,12 @@ namespace fracs
                 os << slf.fz << "/" << slf.fm;
             return os;
         }
+        operator string()
+        {
+            ostringstream oss;
+            oss << *this;
+            return oss.str();
+        }
         void normalize()
         {
             if (fm == 0)
@@ -67,6 +74,10 @@ namespace fracs
             fm /= gdc;
             // nagative ^= (fz < 0) ^ (fm < 0);
             // fz = abs(fz), fm = abs(fm);
+        }
+        double value()
+        {
+            return (double)fz / (double)fm;
         }
         bool operator==(fraction b) const
         {
@@ -100,60 +111,58 @@ namespace fracs
         {
             return !(*this < b);
         }
-        fraction operator-()
+        friend fraction operator-(fraction a)
         {
             fraction tmp;
-            tmp = *this;
+            tmp = a;
             tmp.nagative ^= 1;
             return tmp;
         }
-        fraction operator~()
+        friend fraction operator~(fraction a)
         {
             fraction tmp;
-            tmp.fz = fm;
-            tmp.fm = fz;
-            tmp.nagative = nagative;
+            tmp.fz = a.fm;
+            tmp.fm = a.fz;
+            tmp.nagative = a.nagative;
             return tmp;
         }
-        fraction operator+(fraction b)
+        friend fraction operator+(fraction a, fraction b)
         {
             fraction tmp;
-            if (nagative ^ b.nagative)
+            if (a.nagative ^ b.nagative)
             {
-                tmp.fz = max(fz * b.fm, fm * b.fz) - min(fz * b.fm, fm * b.fz);
-                tmp.nagative = (fz * b.fm == fm * b.fz ? 0 : (fz * b.fm > fm * b.fz ? nagative : b.nagative));
+                tmp.fz = max(a.fz * b.fm, a.fm * b.fz) - min(a.fz * b.fm, a.fm * b.fz);
+                tmp.nagative = (a.fz * b.fm == a.fm * b.fz ? 0 : (a.fz * b.fm > a.fm * b.fz ? a.nagative : b.nagative));
             }
             else
             {
-                tmp.fz = fz * b.fm + fm * b.fz;
-                tmp.nagative = nagative;
+                tmp.fz = a.fz * b.fm + a.fm * b.fz;
+                tmp.nagative = a.nagative;
             }
-            tmp.fm = fm * b.fm;
+            tmp.fm = a.fm * b.fm;
             tmp.normalize();
             return tmp;
         }
-        fraction operator-(fraction b)
+        friend fraction operator-(fraction a, fraction b)
         {
             fraction tmp;
-            tmp = *this + (-b);
+            tmp = a + (-b);
             tmp.normalize();
             return tmp;
         }
-        fraction operator*(fraction b)
+        friend fraction operator*(fraction a, fraction b)
         {
             fraction tmp;
-            tmp.fz = fz * b.fz;
-            tmp.fm = fm * b.fm;
-            tmp.nagative = nagative ^ b.nagative;
+            tmp.fz = a.fz * b.fz;
+            tmp.fm = a.fm * b.fm;
+            tmp.nagative = a.nagative ^ b.nagative;
             tmp.normalize();
             return tmp;
         }
-        fraction operator/(fraction b)
+        friend fraction operator/(fraction a, fraction b)
         {
             fraction tmp;
-            tmp.fz = fz * b.fm;
-            tmp.fm = fm * b.fz;
-            tmp.nagative = nagative ^ b.nagative;
+            tmp = a * (~b);
             return tmp;
         }
         fraction operator=(fraction b)
@@ -163,28 +172,27 @@ namespace fracs
             nagative = b.nagative;
             return *this;
         }
-        fraction operator+=(fraction b)
+        friend fraction &operator+=(fraction &a, fraction b)
         {
-            *this = *this + b;
-            return *this;
+            a = a + b;
+            return a;
         }
-        fraction operator-=(fraction b)
+        friend fraction &operator-=(fraction &a, fraction b)
         {
-            *this = *this - b;
-            return *this;
+            a = a - b;
+            return a;
         }
-        fraction operator*=(fraction b)
+        friend fraction &operator*=(fraction &a, fraction b)
         {
-            *this = *this * b;
-            return *this;
+            a = a * b;
+            return a;
         }
-        fraction operator/=(fraction b)
+        friend fraction &operator/=(fraction &a, fraction b)
         {
-            *this = *this / b;
-            pow(*this, 1);
-            return *this;
+            a = a / b;
+            return a;
         }
-        friend constexpr fraction pow(fraction bs, int r)
+        friend fraction pow(fraction bs, int r)
         {
             fraction tmp;
             tmp.fz = Ipow(bs.fz, r);
@@ -193,10 +201,4 @@ namespace fracs
             return tmp;
         }
     };
-}
-
-using namespace fracs;
-int main()
-{
-    return 0;
 }
