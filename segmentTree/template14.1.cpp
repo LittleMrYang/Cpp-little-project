@@ -1,0 +1,117 @@
+#include<bits/stdc++.h>
+
+#define int long long
+#define lson(o) (o<<1)
+#define rson(o) (o<<1|1)
+#define MAXN 200005
+
+using namespace std;
+
+int a[MAXN],n;
+
+struct SMT{//线段树 
+	
+	int m[MAXN<<2],plz[MAXN<<2];
+	//m表示区间最小值，plz是懒标记 
+	
+	inline void pushup(int o){
+		m[o]=min(m[lson(o)],m[rson(o)]);
+	}
+	
+	inline void build(int l,int r,int o){
+		plz[o]=0;
+		if(l==r){
+			m[o]=a[l];
+			return ;
+		}
+		int mid=(l+r)>>1;
+		build(l,mid,lson(o));
+		build(mid+1,r,rson(o));
+		pushup(o);
+	}
+	//建树 
+	
+	inline void pushdown(int ql,int qr,int o){
+		int mid=(ql+qr)>>1;
+		if(plz[o]){
+			m[lson(o)]+=plz[o];
+			m[rson(o)]+=plz[o];
+			plz[lson(o)]+=plz[o];
+			plz[rson(o)]+=plz[o];
+			plz[o]=0;
+		}
+	}
+	
+	inline int querymin(int l,int r,int ql,int qr,int o){
+		if(l<=ql&&qr<=r)return m[o];
+		pushdown(ql,qr,o);
+		int mid=(ql+qr)>>1,ans=0x7fffffff;
+		if(l<=mid)ans=min(ans,querymin(l,r,ql,mid,lson(o)));
+		if(r>mid)ans=min(ans,querymin(l,r,mid+1,qr,rson(o)));
+		return ans;
+	}
+	//区间查询最小值 
+	
+	inline void add(int l,int r,int k,int ql,int qr,int o){
+		if(l<=ql&&qr<=r){
+			m[o]+=k;
+			plz[o]+=k;
+			return ;
+		}
+		pushdown(ql,qr,o);
+		int mid=(ql+qr)>>1;
+		if(l<=mid)add(l,r,k,ql,mid,lson(o));
+		if(r>mid)add(l,r,k,mid+1,qr,rson(o));
+		pushup(o);
+	}
+	//区间加
+	 
+};
+//都是线段树的基本操作，就不多说了。 
+
+SMT tree;
+
+int spc=0;//用于判断是否还有下一个数 
+inline int read(){
+	spc=0;//每次快读时记得初始化，我因为这个调了十几分钟=_= 
+	int w=0,f=1;
+	char c=getchar();
+	while(!isdigit(c))if(c=='-')f=-1,c=getchar();
+	while(isdigit(c))w=(w<<1)+(w<<3)+(c^48),c=getchar();
+	if(c==' ')spc=1;
+	//原理其实大概是读入完一个数之后
+	//由于 while 的特性会多读入一个字符
+	//如果这个是空格则说明后面还有数。 
+	return w*f;
+}
+
+signed main(void){
+
+	n=read();
+	for(int i=1;i<=n;i++){
+		a[i]=read();
+	}
+	tree.build(1,n,1);
+	
+	int m=read();
+	while(m--){
+		int l=0,r=0,v=0;
+		l=read(),r=read();
+		l++,r++;
+		if(spc){//spc 就是快读里面的那个 
+			v=read();
+			if(l>r)tree.add(l,n,v,1,n,1),tree.add(1,r,v,1,n,1);
+			//成环形 
+			else tree.add(l,r,v,1,n,1);
+			//普通的线形 
+		}
+		else{
+			if(l>r)printf("%lld\n",min(tree.querymin(l,n,1,n,1),tree.querymin(1,r,1,n,1)));
+			else printf("%lld\n",tree.querymin(l,r,1,n,1));
+			//同上 
+		}
+	}
+
+	return 0;
+}
+
